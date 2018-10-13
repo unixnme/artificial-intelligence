@@ -61,10 +61,10 @@ class ActionLayer(BaseActionLayer):
         layers.BaseLayer.parent_layer
         """
         # TODO: implement this function
-        for a in actionA.preconditions:
-            for b in actionB.preconditions:
-                return self.parent_layer.is_mutex(a,b)
-
+        for a in self.parents[actionA]:
+            for b in self.parents[actionB]:
+                if self.parent_layer.is_mutex(a,b):
+                    return True
         return False
 
 class LiteralLayer(BaseLiteralLayer):
@@ -81,7 +81,11 @@ class LiteralLayer(BaseLiteralLayer):
         layers.BaseLayer.parent_layer
         """
         # TODO: implement this function
-        return literalB in self.parent_layer._mutexes[literalA]
+        for a in self.parents[literalA]:
+            for b in self.parents[literalB]:
+                if not self.parent_layer.is_mutex(a,b):
+                    return False
+        return True
 
     def _negation(self, literalA, literalB):
         """ Return True if two literals are negations of each other """
