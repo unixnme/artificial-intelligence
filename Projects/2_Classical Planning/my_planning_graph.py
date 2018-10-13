@@ -20,11 +20,11 @@ class ActionLayer(BaseActionLayer):
         layers.ActionNode
         """
         # TODO: implement this function
-        for a in self.children[actionA]:
-            for b in self.children[actionB]:
+        for a in actionA.effects:
+            for b in actionB.effects:
                 if a == ~b:
-                    return False
-        return True
+                    return True
+        return False
 
     def _interference(self, actionA, actionB):
         """ Return True if the effects of either action negate the preconditions of the other 
@@ -38,7 +38,15 @@ class ActionLayer(BaseActionLayer):
         layers.ActionNode
         """
         # TODO: implement this function
-        raise NotImplementedError
+        for a in actionA.effects:
+            for b in actionB.preconditions:
+                if a == ~b: return True
+
+        for a in actionA.preconditions:
+            for b in actionB.effects:
+                if a == ~b: return True
+
+        return False
 
     def _competing_needs(self, actionA, actionB):
         """ Return True if any preconditions of the two actions are pairwise mutex in the parent layer
@@ -53,8 +61,11 @@ class ActionLayer(BaseActionLayer):
         layers.BaseLayer.parent_layer
         """
         # TODO: implement this function
-        raise NotImplementedError
+        for a in actionA.preconditions:
+            for b in actionB.preconditions:
+                return self.parent_layer.is_mutex(a,b)
 
+        return False
 
 class LiteralLayer(BaseLiteralLayer):
 
@@ -70,7 +81,7 @@ class LiteralLayer(BaseLiteralLayer):
         layers.BaseLayer.parent_layer
         """
         # TODO: implement this function
-        raise NotImplementedError
+        return literalB in self.parent_layer._mutexes[literalA]
 
     def _negation(self, literalA, literalB):
         """ Return True if two literals are negations of each other """
