@@ -20,8 +20,11 @@ class ActionLayer(BaseActionLayer):
         layers.ActionNode
         """
         # TODO: implement this function
-        raise NotImplementedError
-
+        for a in self.children[actionA]:
+            for b in self.children[actionB]:
+                if a == ~b:
+                    return False
+        return True
 
     def _interference(self, actionA, actionB):
         """ Return True if the effects of either action negate the preconditions of the other 
@@ -72,7 +75,7 @@ class LiteralLayer(BaseLiteralLayer):
     def _negation(self, literalA, literalB):
         """ Return True if two literals are negations of each other """
         # TODO: implement this function
-        raise NotImplementedError
+        return literalA == ~literalB
 
 
 class PlanningGraph:
