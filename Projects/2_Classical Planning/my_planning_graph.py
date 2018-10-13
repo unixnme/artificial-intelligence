@@ -20,8 +20,8 @@ class ActionLayer(BaseActionLayer):
         layers.ActionNode
         """
         # TODO: implement this function
-        for a in actionA.effects:
-            for b in actionB.effects:
+        for a in self.children[actionA]:
+            for b in self.children[actionB]:
                 if a == ~b:
                     return True
         return False
@@ -38,12 +38,12 @@ class ActionLayer(BaseActionLayer):
         layers.ActionNode
         """
         # TODO: implement this function
-        for a in actionA.effects:
-            for b in actionB.preconditions:
+        for a in self.children[actionA]:
+            for b in self.parents[actionB]:
                 if a == ~b: return True
 
-        for a in actionA.preconditions:
-            for b in actionB.effects:
+        for a in self.parents[actionA]:
+            for b in self.children[actionB]:
                 if a == ~b: return True
 
         return False
