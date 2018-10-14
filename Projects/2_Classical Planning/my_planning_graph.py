@@ -128,6 +128,11 @@ class PlanningGraph:
         self.literal_layers = [layer]
         self.action_layers = []
 
+    def h_levelcost(self, goal):
+        for idx,layer in enumerate(self.literal_layers):
+            if goal in layer:
+                return idx
+
     def h_levelsum(self):
         """ Calculate the level sum heuristic for the planning graph
 
@@ -154,7 +159,9 @@ class PlanningGraph:
         Russell-Norvig 10.3.1 (3rd Edition)
         """
         # TODO: implement this function
-        raise NotImplementedError
+        self.fill(-1)
+        costs = [self.h_levelcost(goal) for goal in self.goal]
+        return sum(costs)
 
     def h_maxlevel(self):
         """ Calculate the max level heuristic for the planning graph
@@ -184,8 +191,10 @@ class PlanningGraph:
         WARNING: you should expect long runtimes using this heuristic with A*
         """
         # TODO: implement maxlevel heuristic
-        raise NotImplementedError
-
+        self.fill(-1)
+        costs = [self.h_levelcost(goal) for goal in self.goal]
+        return max(costs)
+    
     def h_setlevel(self):
         """ Calculate the set level heuristic for the planning graph
 
