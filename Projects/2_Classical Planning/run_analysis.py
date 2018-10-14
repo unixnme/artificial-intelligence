@@ -1,7 +1,7 @@
 from run_search import main
 import sys
 
-problems = [1]
+problems = [2]
 searches = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 problems_field = ['problem']
@@ -18,6 +18,9 @@ for p in problems:
 
         problems_field.append(p)
         searches_field.append(s)
+        sys.stdout = stdout
+        print('problem %d search %d' % (p, s))
+        sys.stdout.flush()
 
         with open('logfile', 'w') as f:
             sys.stdout = f
