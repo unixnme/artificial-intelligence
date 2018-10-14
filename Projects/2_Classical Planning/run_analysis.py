@@ -1,17 +1,15 @@
-import numpy as np
 from run_search import main
 import sys
-import matplotlib.pyplot as plt
 
 problems = [1]
-searches = np.arange(1,12).astype(np.int32).tolist()
+searches = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
-problems_field = []
-searches_field = []
-actions_field = []
-expansions_field = []
-plength_field = []
-time_field = []
+problems_field = ['problem']
+searches_field = ['search']
+actions_field = ['action']
+expansions_field = ['expansion']
+plength_field = ['plength']
+time_field = ['time']
 
 stdout = sys.stdout
 
@@ -28,7 +26,8 @@ for p in problems:
         with open('logfile', 'r') as f:
             lines = f.readlines()
             actions, expansions = lines[4].split()[:2]
-            plength, time = np.asarray(lines[6].split())[[2, -1]]
+            plength = lines[6].split()[2]
+            time = lines[6].split()[-1]
 
             actions, expansions, plength, time = float(actions), float(expansions), float(plength), float(time)
             actions_field.append(actions)
@@ -38,11 +37,8 @@ for p in problems:
 
 sys.stdout = stdout
 
-plt.plot(expansions_field, actions_field)
-plt.show()
-
-plt.plot(time_field, actions_field)
-plt.show()
-
-plt.plot(plength_field, searches_field)
-plt.show()
+for array in [problems_field, searches_field, actions_field, expansions_field, plength_field, time_field]:
+    print(array[0] + '\t', end='')
+    for elem in array[1:]:
+        print('%f\t' % elem, end='')
+    print()
