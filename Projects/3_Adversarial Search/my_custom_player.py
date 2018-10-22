@@ -1,6 +1,7 @@
 from sample_players import DataPlayer
 import random
 from isolation import DebugState
+import numpy as np
 
 def debug_print_state(state):
     dbstate = DebugState.from_state(state)
@@ -45,6 +46,18 @@ class OpenningBook(object):
             state = state.result(random.choice(state.actions()))
         return -1 if state.utility(player_id) < 0 else 1
 
+    def best_action(self, state):
+        '''
+        find best action from this state and return its action
+        '''
+        actions = state.actions()
+        results = [state.result(action) for action in actions]
+        nodes = [self._get_node(result) for result in results]
+        stats = [self.book[node] for node in nodes]
+        ratios = [win / (win + loss) for win,loss in stats]
+        max_ratio = max(ratios)
+        max_indices = [idx for idx,ratio in enumerate(ratios) if ratio == max_ratio]
+        return actions[random.choice(max_indices)]
 
 class CustomPlayer(DataPlayer):
     """ Implement your own agent to play knight's Isolation
@@ -87,7 +100,7 @@ class CustomPlayer(DataPlayer):
         #          call self.queue.put(ACTION) at least once before time expires
         #          (the timer is automatically managed for you)
 
-        if state.ply_count < 2:
+        if state.ply_count < 4:
             self.queue.put(OpenningBook(self.data).best_action(state))
         else:
             self.queue.put(self.minimax(state, depth=3))
@@ -131,8 +144,6 @@ if __name__ == '__main__':
 
     book = OpenningBook()
     state = Isolation()
-    for action in state.actions():
-        new_state = state.result(action)
-        book.build_tree(new_state, 1)
+    win, loss = book.build_tree(state, 4)
     with open('data.pickle', 'wb') as f:
         pickle.dump(book.book, f)
