@@ -1,5 +1,49 @@
-
 from sample_players import DataPlayer
+import random
+from isolation import DebugState
+
+def debug_print_state(state):
+    dbstate = DebugState.from_state(state)
+    print(dbstate)
+
+class OpenningBook(object):
+    def __init__(self, book={}):
+        self.book = book # book[node] = [win, loss]
+        self.player_id = 1
+
+    def update(self, state, win, loss):
+        node = self._get_node(state)
+        if node not in self.book:
+            self.book[node] = [0, 0]
+        self.book[node][0] += win
+        self.book[node][1] += loss
+
+    @staticmethod
+    def _get_node(state):
+        return (state.board, *state.locs)
+
+    def build_tree(self, state, depth=4):
+        if depth <= 0 or state.terminal_test():
+            win, loss = 0, 0
+            for _ in range(1):
+                if self.simulate(state) > 0:    win += 1
+                else:                           loss += 1
+            return loss, win
+
+        total_win, total_loss = 0, 0
+        for action in state.actions():
+            result_state = state.result(action)
+            win, loss = self.build_tree(state.result(action), depth - 1)
+            self.update(result_state, win, loss)
+            total_win += win; total_loss += loss
+
+        return total_loss, total_win
+
+    def simulate(self, state):
+        player_id = self.player_id
+        while not state.terminal_test():
+            state = state.result(random.choice(state.actions()))
+        return -1 if state.utility(player_id) < 0 else 1
 
 
 class CustomPlayer(DataPlayer):
@@ -42,5 +86,53 @@ class CustomPlayer(DataPlayer):
         # EXAMPLE: choose a random move without any search--this function MUST
         #          call self.queue.put(ACTION) at least once before time expires
         #          (the timer is automatically managed for you)
-        import random
-        self.queue.put(random.choice(state.actions()))
+
+        if state.ply_count < 2:
+            self.queue.put(OpenningBook(self.data).best_action(state))
+        else:
+            self.queue.put(self.minimax(state, depth=3))
+
+    def minimax(self, state, depth):
+
+        def min_value(state, depth):
+            if state.terminal_test(): return state.utility(self.player_id)
+            if depth <= 0: return self.score(state)
+            value = float("inf")
+            for action in state.actions():
+                value = min(value, max_value(state.result(action), depth - 1))
+            return value
+
+        def max_value(state, depth):
+            if state.terminal_test(): return state.utility(self.player_id)
+            if depth <= 0: return self.score(state)
+            value = float("-inf")
+            for action in state.actions():
+                value = max(value, min_value(state.result(action), depth - 1))
+            return value
+
+        return max(state.actions(), key=lambda x: min_value(state.result(x), depth - 1))
+
+    def score(self, state):
+        own_loc = state.locs[self.player_id]
+        opp_loc = state.locs[1 - self.player_id]
+        own_liberties = state.liberties(own_loc)
+        opp_liberties = state.liberties(opp_loc)
+        return len(own_liberties) - len(opp_liberties)
+
+
+'''
+Code for openning book
+This code should be executed before running the game
+Thie code will create and save data.pickle file
+'''
+if __name__ == '__main__':
+    from isolation import Isolation
+    import pickle
+
+    book = OpenningBook()
+    state = Isolation()
+    for action in state.actions():
+        new_state = state.result(action)
+        book.build_tree(new_state, 1)
+    with open('data.pickle', 'wb') as f:
+        pickle.dump(book.book, f)
